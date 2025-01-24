@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package empty;
+
+import "koinos/options.proto"; 
+
+message str {
+   string value = 1;
+}
+
+message uint64 {
+   uint64 value = 1;
+}
+
+message list_args {
+   bytes start = 1 [(koinos.btype) = ADDRESS];
+   int32 limit = 2;
+   direction direction = 3;
+}
+
+message addresses {
+   repeated bytes accounts = 1 [(koinos.btype) = ADDRESS];
+}
+
+enum direction {
+   ascending = 0;
+   descending = 1;
+}
+
+message get_vault_args {
+   bytes owner = 1 [(koinos.btype) = ADDRESS];
+}
+
+message vaultbalances {
+   uint64 koin = 1 [jstype = JS_STRING];
+   uint64 eth = 2 [jstype = JS_STRING];
+   uint64 btc = 3 [jstype = JS_STRING];
+   uint64 kas = 4 [jstype = JS_STRING];
+   uint64 kusd = 5 [jstype = JS_STRING];
+}
+
+message deposit_args {
+   uint32 collateral = 1;
+   uint64 amount = 2 [jstype = JS_STRING];
+   uint32 fee = 3;
+   bytes fee_address = 4 [(koinos.btype) = ADDRESS];
+}
+
+message mint_args {
+   uint64 amount = 1 [jstype = JS_STRING];
+}
+
+message repay_args {
+   uint64 amount = 1 [jstype = JS_STRING];
+}
+
+message withdraw_args {
+   uint32 collateral = 1;
+   uint64 amount = 2 [jstype = JS_STRING];
+}
+
+message liquidate_args {
+   bytes vault = 1 [(koinos.btype) = ADDRESS];
+}
+
+
+
+message ratio_args {
+
+}
+
+message ratio_result {
+   string k_last = 1;
+   uint64 token_a = 2 [jstype = JS_STRING];
+   uint64 token_b = 3 [jstype = JS_STRING];
+   uint64 block_time = 4 [jstype = JS_STRING];
+}

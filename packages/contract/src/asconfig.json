@@ -1,0 +1,26 @@
+{
+  "targets": {
+    "debug": {
+      "outFile": "./build/debug/Kusd.wasm",
+      "textFile": "./build/debug/Kusd.wat",
+      "sourceMap": true,
+      "debug": true
+    },
+    "release": {
+      "outFile": "./build/release/Kusd.wasm",
+      "textFile": "./build/release/Kusd.wat",
+      "sourceMap": true,
+      "optimizeLevel": 3,
+      "shrinkLevel": 0,
+      "converge": false,
+      "noAssert": false
+    }
+  },
+  "options": {
+    "exportStart": "_start",
+    "disable": ["sign-extension", "bulk-memory"],
+    "disableWarning": "235",
+    "lib": [],
+    "use": ["abort="]
+  }
+}

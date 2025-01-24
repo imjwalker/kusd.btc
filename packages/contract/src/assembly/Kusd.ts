@@ -10,6 +10,7 @@ import { u128 } from "@koinos/sdk-as";
 const VAULTS_SPACE_ID = 4;
 
 // TESTNET CONTRACTS
+// These are random token contracts I uploaded. You can freely mint their tokens
 const koinContract = new Base(Base58.decode("1PWNYq8aF6rcKd4of59FEeSEKmYifCyoJc")); // token contracts
 const ethContract = new Base(Base58.decode("17mY5nkRwW4cpruxmavBaTMfiV3PUC8mG7"));
 const btcContract = new Base(Base58.decode("1PWNYq8aF6rcKd4of59FEeSEKmYifCyoJc"));

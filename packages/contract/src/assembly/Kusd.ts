@@ -120,6 +120,7 @@ export class Kusd extends Token {
     let toDeposit: u64;
     let fee_amount: u64 = 0;
 
+    // Sending a Fee is optional
     // Fee has 3 decimal places, minimum fee is 0.001 (0.1 %) if true
     if (args.fee > 0) {
       fee_amount = args.amount * args.fee / 1000;

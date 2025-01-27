@@ -2,7 +2,7 @@
 
 import { System, Storage, Protobuf, Base58, authority } from "@koinos/sdk-as";
 import { Token as Base } from "@koinos/sdk-as";
-import { System2, Token, common, token } from "@koinosbox/contracts";
+import { Token, common, token } from "@koinosbox/contracts";
 import { empty } from "./proto/empty";
 import { ExternalContract as Extc } from "./ExternalContract";
 import { multiplyAndDivide } from "@koinosbox/contracts/assembly/vapor/utils";
@@ -254,28 +254,26 @@ export class Kusd extends Token {
   }
 
   /**
-   * Get KAP price
-   * @external
-   * @readonly
+   * Get the koin price from the KAP USD oracle
    */
   get_KAP_price(): empty.price_object {
-    return KAPusd.get_KAP_price(new empty.get_price_args(Base58.decode("13PXvxWLMyi4dAd6uS1SehNNFryvFyygnD")));
+    return KAPusd.get_price(new empty.get_price_args(Base58.decode("1Mzp89UMsSh6Fiy4ZEVvTKsmxUYpoJ3emH")));
   }
 
   /**
    * Calculate the total USD value of KOIN
    */
   kusd_gold_usd(args: empty.vaultbalances): empty.uint64 {
+
     // compare the KOIN price of KOINDX and the KAP USD oracle, use the highest one.
     const KAP_price: u64 = this.get_KAP_price().price;
-    const KOINDX_price: u64 = koinUsdt.ratio().token_b / koinUsdt.ratio().token_a;
-    let koin_price: u64; 
+    const KOINDX_price: u64 = multiplyAndDivide(koinUsdt.ratio().token_b, koinUsdt.ratio().token_a, 100000000);
+    let koin_price: u64;
     (KAP_price > KOINDX_price) ? koin_price = KAP_price : koin_price = KOINDX_price;
     let totalCollateralValue: u64 = 0;
 
     if (args.koin) {
       totalCollateralValue += multiplyAndDivide(args.koin, koin_price, 100000000);
-      // totalCollateralValue += multiplyAndDivide(args.koin, koinUsdt.ratio().token_b, koinUsdt.ratio().token_a);
     }
     return new empty.uint64(totalCollateralValue);
   }

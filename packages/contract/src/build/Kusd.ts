@@ -255,11 +255,9 @@ export class Kusd extends Token {
 
   /**
    * Get KAP price
-   * @external
-   * @readonly
    */
   get_KAP_price(): empty.price_object {
-    return KAPusd.get_KAP_price(new empty.get_price_args(Base58.decode("13PXvxWLMyi4dAd6uS1SehNNFryvFyygnD")));
+    return KAPusd.get_price(new empty.get_price_args(Base58.decode("1Mzp89UMsSh6Fiy4ZEVvTKsmxUYpoJ3emH")));
   }
 
   /**
@@ -268,14 +266,13 @@ export class Kusd extends Token {
   kusd_gold_usd(args: empty.vaultbalances): empty.uint64 {
     // compare the KOIN price of KOINDX and the KAP USD oracle, use the highest one.
     const KAP_price: u64 = this.get_KAP_price().price;
-    const KOINDX_price: u64 = koinUsdt.ratio().token_b / koinUsdt.ratio().token_a;
-    let koin_price: u64; 
+    const KOINDX_price: u64 = multiplyAndDivide(koinUsdt.ratio().token_b, koinUsdt.ratio().token_a, 100000000);
+    let koin_price: u64 = KOINDX_price;
     (KAP_price > KOINDX_price) ? koin_price = KAP_price : koin_price = KOINDX_price;
     let totalCollateralValue: u64 = 0;
 
     if (args.koin) {
-      totalCollateralValue += multiplyAndDivide(args.koin, koin_price, 100000000);
-      // totalCollateralValue += multiplyAndDivide(args.koin, koinUsdt.ratio().token_b, koinUsdt.ratio().token_a);
+      totalCollateralValue += multiplyAndDivide(args.koin, KOINDX_price, 100000000); // koin_price
     }
     return new empty.uint64(totalCollateralValue);
   }

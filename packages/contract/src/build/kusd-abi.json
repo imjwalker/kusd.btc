@@ -54,15 +54,6 @@
       "entry-point": "0xa81c3300",
       "read-only": false
     },
-    "get_KAP_price": {
-      "argument": "",
-      "return": "empty.price_object",
-      "description": "Get KAP price",
-      "entry_point": 69476731,
-      "read_only": true,
-      "entry-point": "0x0424217b",
-      "read-only": true
-    },
     "repay_kusd": {
       "argument": "empty.repay_args",
       "return": "",

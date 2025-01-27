@@ -58,13 +58,6 @@ switch (contract.callArgs!.entry_point) {
     break;
   }
 
-  // get_KAP_price
-  case 0x0424217b: {
-    const result = contract.get_KAP_price();
-    returnBuffer = Protobuf.encode(result, empty.price_object.encode);
-    break;
-  }
-
   // repay_kusd
   case 0xa1575e73: {
     const args = Protobuf.decode<empty.repay_args>(contract.callArgs!.args, empty.repay_args.decode);

@@ -36,37 +36,46 @@ message vaultbalances {
    uint64 eth = 2 [jstype = JS_STRING];
    uint64 btc = 3 [jstype = JS_STRING];
    uint64 kas = 4 [jstype = JS_STRING];
-   uint64 kusd = 5 [jstype = JS_STRING];
+   uint64 kusdgold = 5 [jstype = JS_STRING];
+   uint64 kusdsilver = 6 [jstype = JS_STRING];
 }
 
 message deposit_args {
-   uint32 collateral = 1;
-   uint64 amount = 2 [jstype = JS_STRING];
-   uint32 fee = 3;
-   bytes fee_address = 4 [(koinos.btype) = ADDRESS];
+   bytes account = 1 [(koinos.btype) = ADDRESS];
+   uint32 collateral = 2;
+   uint64 amount = 3 [jstype = JS_STRING];
+   uint32 fee = 4;
+   bytes fee_address = 5 [(koinos.btype) = ADDRESS];
 }
 
 message mint_args {
-   uint64 amount = 1 [jstype = JS_STRING];
+   bytes account = 1 [(koinos.btype) = ADDRESS];
+   uint32 type = 2;
+   uint64 amount = 3 [jstype = JS_STRING];
 }
 
 message repay_args {
-   uint64 amount = 1 [jstype = JS_STRING];
+   bytes account = 1 [(koinos.btype) = ADDRESS];
+   uint32 type = 2;
+   uint64 amount = 3 [jstype = JS_STRING];
 }
 
 message withdraw_args {
-   uint32 collateral = 1;
-   uint64 amount = 2 [jstype = JS_STRING];
+   bytes account = 1 [(koinos.btype) = ADDRESS];
+   uint32 collateral = 2;
+   uint64 amount = 3 [jstype = JS_STRING];
 }
 
 message liquidate_args {
-   bytes vault = 1 [(koinos.btype) = ADDRESS];
+   bytes account = 1 [(koinos.btype) = ADDRESS];
+   uint32 type = 2;
+   bytes vault = 3 [(koinos.btype) = ADDRESS];
 }
 
 
 
 message ratio_args {
-
+   
 }
 
 message ratio_result {
@@ -74,4 +83,13 @@ message ratio_result {
    uint64 token_a = 2 [jstype = JS_STRING];
    uint64 token_b = 3 [jstype = JS_STRING];
    uint64 block_time = 4 [jstype = JS_STRING];
+}
+
+message get_price_args {
+  bytes token_address = 1 [(koinos.btype) = CONTRACT_ID];
+}
+
+message price_object {
+  uint64 price = 1 [jstype = JS_STRING];
+  uint64 timestamp = 2 [jstype = JS_STRING];
 }

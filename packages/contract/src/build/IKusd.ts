@@ -9,7 +9,7 @@ export class Kusd extends Token {
 
   /**
  * Get a list of all vaults
- * @external 
+ * @external
  * @readonly
  */
   get_vaults(args: empty.list_args): empty.addresses {
@@ -93,6 +93,22 @@ export class Kusd extends Token {
       System.exit(callRes.code, StringBytes.stringToBytes(errorMessage));
     }
     return;
+  }
+
+  /**
+   * Get KAP price
+   * @external
+   * @readonly
+   */
+  get_KAP_price(): empty.price_object {
+    const argsBuffer = new Uint8Array(0);
+    const callRes = System.call(this._contractId, 0x0424217b, argsBuffer);
+    if (callRes.code != 0) {
+      const errorMessage = `failed to call 'Kusd.get_KAP_price': ${callRes.res.error && callRes.res.error!.message ? callRes.res.error!.message : "unknown error"}`;
+      System.exit(callRes.code, StringBytes.stringToBytes(errorMessage));
+    }
+    if (!callRes.res.object) return new empty.price_object();
+    return Protobuf.decode<empty.price_object>(callRes.res.object, empty.price_object.decode);
   }
 
   /**

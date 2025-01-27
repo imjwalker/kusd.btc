@@ -232,9 +232,14 @@ export namespace empty {
         writer.uint64(message.kas);
       }
 
-      if (message.kusd != 0) {
+      if (message.kusdgold != 0) {
         writer.uint32(40);
-        writer.uint64(message.kusd);
+        writer.uint64(message.kusdgold);
+      }
+
+      if (message.kusdsilver != 0) {
+        writer.uint32(48);
+        writer.uint64(message.kusdsilver);
       }
     }
 
@@ -262,7 +267,11 @@ export namespace empty {
             break;
 
           case 5:
-            message.kusd = reader.uint64();
+            message.kusdgold = reader.uint64();
+            break;
+
+          case 6:
+            message.kusdsilver = reader.uint64();
             break;
 
           default:
@@ -278,43 +287,52 @@ export namespace empty {
     eth: u64;
     btc: u64;
     kas: u64;
-    kusd: u64;
+    kusdgold: u64;
+    kusdsilver: u64;
 
     constructor(
       koin: u64 = 0,
       eth: u64 = 0,
       btc: u64 = 0,
       kas: u64 = 0,
-      kusd: u64 = 0
+      kusdgold: u64 = 0,
+      kusdsilver: u64 = 0
     ) {
       this.koin = koin;
       this.eth = eth;
       this.btc = btc;
       this.kas = kas;
-      this.kusd = kusd;
+      this.kusdgold = kusdgold;
+      this.kusdsilver = kusdsilver;
     }
   }
 
   export class deposit_args {
     static encode(message: deposit_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
       if (message.collateral != 0) {
-        writer.uint32(8);
+        writer.uint32(16);
         writer.uint32(message.collateral);
       }
 
       if (message.amount != 0) {
-        writer.uint32(16);
+        writer.uint32(24);
         writer.uint64(message.amount);
       }
 
       if (message.fee != 0) {
-        writer.uint32(24);
+        writer.uint32(32);
         writer.uint32(message.fee);
       }
 
       const unique_name_fee_address = message.fee_address;
       if (unique_name_fee_address !== null) {
-        writer.uint32(34);
+        writer.uint32(42);
         writer.bytes(unique_name_fee_address);
       }
     }
@@ -327,18 +345,22 @@ export namespace empty {
         const tag = reader.uint32();
         switch (tag >>> 3) {
           case 1:
-            message.collateral = reader.uint32();
+            message.account = reader.bytes();
             break;
 
           case 2:
-            message.amount = reader.uint64();
+            message.collateral = reader.uint32();
             break;
 
           case 3:
-            message.fee = reader.uint32();
+            message.amount = reader.uint64();
             break;
 
           case 4:
+            message.fee = reader.uint32();
+            break;
+
+          case 5:
             message.fee_address = reader.bytes();
             break;
 
@@ -351,17 +373,20 @@ export namespace empty {
       return message;
     }
 
+    account: Uint8Array | null;
     collateral: u32;
     amount: u64;
     fee: u32;
     fee_address: Uint8Array | null;
 
     constructor(
+      account: Uint8Array | null = null,
       collateral: u32 = 0,
       amount: u64 = 0,
       fee: u32 = 0,
       fee_address: Uint8Array | null = null
     ) {
+      this.account = account;
       this.collateral = collateral;
       this.amount = amount;
       this.fee = fee;
@@ -369,11 +394,21 @@ export namespace empty {
     }
   }
 
-  @unmanaged
   export class mint_args {
     static encode(message: mint_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
+      if (message.type != 0) {
+        writer.uint32(16);
+        writer.uint32(message.type);
+      }
+
       if (message.amount != 0) {
-        writer.uint32(8);
+        writer.uint32(24);
         writer.uint64(message.amount);
       }
     }
@@ -386,6 +421,14 @@ export namespace empty {
         const tag = reader.uint32();
         switch (tag >>> 3) {
           case 1:
+            message.account = reader.bytes();
+            break;
+
+          case 2:
+            message.type = reader.uint32();
+            break;
+
+          case 3:
             message.amount = reader.uint64();
             break;
 
@@ -398,18 +441,36 @@ export namespace empty {
       return message;
     }
 
+    account: Uint8Array | null;
+    type: u32;
     amount: u64;
 
-    constructor(amount: u64 = 0) {
+    constructor(
+      account: Uint8Array | null = null,
+      type: u32 = 0,
+      amount: u64 = 0
+    ) {
+      this.account = account;
+      this.type = type;
       this.amount = amount;
     }
   }
 
-  @unmanaged
   export class repay_args {
     static encode(message: repay_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
+      if (message.type != 0) {
+        writer.uint32(16);
+        writer.uint32(message.type);
+      }
+
       if (message.amount != 0) {
-        writer.uint32(8);
+        writer.uint32(24);
         writer.uint64(message.amount);
       }
     }
@@ -422,6 +483,14 @@ export namespace empty {
         const tag = reader.uint32();
         switch (tag >>> 3) {
           case 1:
+            message.account = reader.bytes();
+            break;
+
+          case 2:
+            message.type = reader.uint32();
+            break;
+
+          case 3:
             message.amount = reader.uint64();
             break;
 
@@ -434,23 +503,36 @@ export namespace empty {
       return message;
     }
 
+    account: Uint8Array | null;
+    type: u32;
     amount: u64;
 
-    constructor(amount: u64 = 0) {
+    constructor(
+      account: Uint8Array | null = null,
+      type: u32 = 0,
+      amount: u64 = 0
+    ) {
+      this.account = account;
+      this.type = type;
       this.amount = amount;
     }
   }
 
-  @unmanaged
   export class withdraw_args {
     static encode(message: withdraw_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
       if (message.collateral != 0) {
-        writer.uint32(8);
+        writer.uint32(16);
         writer.uint32(message.collateral);
       }
 
       if (message.amount != 0) {
-        writer.uint32(16);
+        writer.uint32(24);
         writer.uint64(message.amount);
       }
     }
@@ -463,10 +545,14 @@ export namespace empty {
         const tag = reader.uint32();
         switch (tag >>> 3) {
           case 1:
-            message.collateral = reader.uint32();
+            message.account = reader.bytes();
             break;
 
           case 2:
+            message.collateral = reader.uint32();
+            break;
+
+          case 3:
             message.amount = reader.uint64();
             break;
 
@@ -479,10 +565,16 @@ export namespace empty {
       return message;
     }
 
+    account: Uint8Array | null;
     collateral: u32;
     amount: u64;
 
-    constructor(collateral: u32 = 0, amount: u64 = 0) {
+    constructor(
+      account: Uint8Array | null = null,
+      collateral: u32 = 0,
+      amount: u64 = 0
+    ) {
+      this.account = account;
       this.collateral = collateral;
       this.amount = amount;
     }
@@ -490,9 +582,20 @@ export namespace empty {
 
   export class liquidate_args {
     static encode(message: liquidate_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
+      if (message.type != 0) {
+        writer.uint32(16);
+        writer.uint32(message.type);
+      }
+
       const unique_name_vault = message.vault;
       if (unique_name_vault !== null) {
-        writer.uint32(10);
+        writer.uint32(26);
         writer.bytes(unique_name_vault);
       }
     }
@@ -505,6 +608,14 @@ export namespace empty {
         const tag = reader.uint32();
         switch (tag >>> 3) {
           case 1:
+            message.account = reader.bytes();
+            break;
+
+          case 2:
+            message.type = reader.uint32();
+            break;
+
+          case 3:
             message.vault = reader.bytes();
             break;
 
@@ -517,9 +628,17 @@ export namespace empty {
       return message;
     }
 
+    account: Uint8Array | null;
+    type: u32;
     vault: Uint8Array | null;
 
-    constructor(vault: Uint8Array | null = null) {
+    constructor(
+      account: Uint8Array | null = null,
+      type: u32 = 0,
+      vault: Uint8Array | null = null
+    ) {
+      this.account = account;
+      this.type = type;
       this.vault = vault;
     }
   }
@@ -618,6 +737,89 @@ export namespace empty {
       this.token_a = token_a;
       this.token_b = token_b;
       this.block_time = block_time;
+    }
+  }
+
+  export class get_price_args {
+    static encode(message: get_price_args, writer: Writer): void {
+      const unique_name_token_address = message.token_address;
+      if (unique_name_token_address !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_token_address);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): get_price_args {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new get_price_args();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.token_address = reader.bytes();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    token_address: Uint8Array | null;
+
+    constructor(token_address: Uint8Array | null = null) {
+      this.token_address = token_address;
+    }
+  }
+
+  @unmanaged
+  export class price_object {
+    static encode(message: price_object, writer: Writer): void {
+      if (message.price != 0) {
+        writer.uint32(8);
+        writer.uint64(message.price);
+      }
+
+      if (message.timestamp != 0) {
+        writer.uint32(16);
+        writer.uint64(message.timestamp);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): price_object {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new price_object();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.price = reader.uint64();
+            break;
+
+          case 2:
+            message.timestamp = reader.uint64();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    price: u64;
+    timestamp: u64;
+
+    constructor(price: u64 = 0, timestamp: u64 = 0) {
+      this.price = price;
+      this.timestamp = timestamp;
     }
   }
 

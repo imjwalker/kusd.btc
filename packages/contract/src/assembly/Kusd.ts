@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 
-import { System, Storage, Protobuf, Base58 } from "@koinos/sdk-as";
+import { System, Storage, Protobuf, Base58, authority } from "@koinos/sdk-as";
 import { Token as Base } from "@koinos/sdk-as";
 import { System2, Token, common, token } from "@koinosbox/contracts";
 import { empty } from "./proto/empty";
 import { ExternalContract as Extc } from "./ExternalContract";
-import { u128 } from "@koinos/sdk-as";
+import { multiplyAndDivide } from "@koinosbox/contracts/assembly/vapor/utils";
 
 const VAULTS_SPACE_ID = 4;
 
 // TESTNET CONTRACTS
-// These are random token contracts I uploaded. You can freely mint their tokens
+// These are random token contracts I uploaded. You can freely mint tokens
 const koinContract = new Base(Base58.decode("1PWNYq8aF6rcKd4of59FEeSEKmYifCyoJc")); // token contracts
 const ethContract = new Base(Base58.decode("17mY5nkRwW4cpruxmavBaTMfiV3PUC8mG7"));
 const btcContract = new Base(Base58.decode("1PWNYq8aF6rcKd4of59FEeSEKmYifCyoJc"));
@@ -21,6 +21,9 @@ const koinUsdt = new Extc(Base58.decode("1JNfiwk1QT4Ao4bu1YrTD7rEiQoTPXKnZ6")); 
 const ethUsdt = new Extc(Base58.decode("1JNfiwk1QT4Ao4bu1YrTD7rEiQoTPXKnZ6"));
 const btcUsdt = new Extc(Base58.decode("1JNfiwk1QT4Ao4bu1YrTD7rEiQoTPXKnZ6"));
 const kasUsdt = new Extc(Base58.decode("1JNfiwk1QT4Ao4bu1YrTD7rEiQoTPXKnZ6"));
+
+// KAP USD oracle (MEXC price)
+const KAPusd = new Extc(Base58.decode("13PXvxWLMyi4dAd6uS1SehNNFryvFyygnD")); // testcontract
 
 /* 
 // MAINNET CONTRACTS
@@ -34,6 +37,9 @@ const koinUsdt = new Etc(Base58.decode("1M9VoAHN3MdvwHnUotgk8GBVjCnXYepWbk"));
 const ethUsdt = new Etc(Base58.decode("16JJ3mcBBGWvAtyErJCRa3UGg7rp6K53Q2"));
 const btcUsdt = new Etc(Base58.decode("1LmHjp6kSPxPt5cizndheGuvxYjFPrFzw"));
 const kasUsdt = new Etc(Base58.decode("1JziwXomLzRZ2douabcBFSWn4BnhYG17C"));
+
+// KAP USD oracle
+const KAPusd = new Extc(Base58.decode("1D53GFQkL5TkQ9okuf6r3Gta3oeTMVgGJW"));
  */
 
 export class Kusd extends Token {
@@ -54,13 +60,13 @@ export class Kusd extends Token {
 
   /**
  * Get a list of all vaults
- * @external 
+ * @external
  * @readonly
  */  
   get_vaults(args: empty.list_args): empty.addresses {
     const direction = args.direction == empty.direction.ascending ? Storage.Direction.Ascending : Storage.Direction.Descending;
     const accounts = this.vaults.getManyKeys(args.start ? args.start! : new Uint8Array(0), args.limit, direction);
-    return new empty.addresses(accounts); // only one is visible in block explorer, probably due to the nature of protobuf?
+    return new empty.addresses(accounts);
   }
 
   /**
@@ -77,36 +83,36 @@ export class Kusd extends Token {
  * @external
  */
   liquidate(args: empty.liquidate_args): void {
+    if (!this.vaults.get(args.account!)) {
+      throw new Error("To liquidate you must have a vault open");
+    }
     const vb = this.vaults.get(args.vault!)!;
-    const allVaults = this.vaults;
+    let vaultBalance: empty.vaultbalances = this.vaults.get(args.account!)!;
 
-    // a minimum collateralization ratio of 110% is required
-    if (vb.kusd * 110 / 100 > this.vault_usd(vb).value) {
-      const vaultsList = this.get_vaults(new empty.list_args()).accounts;
-      const eligible = vaultsList.length - 1;
-      if (eligible == 0) {
-        throw new Error("Liquidation not possible if there is only 1 vault open.");
-      }
-
-      for (let i = 0; i < vaultsList.length; i++) {
-        const vaultAddress = vaultsList[i];
-        if (vaultAddress == args.vault) {
-          continue;
+    // a minimum collateralization ratio of 110% is require
+    switch (args.type) {
+      case 0:
+        if (multiplyAndDivide(vb.kusdgold, 110, 100) > this.kusd_gold_usd(vb).value) {
+          vaultBalance.koin += vb.koin;
+          vaultBalance.kusdgold += vb.kusdgold;
+          this.vaults.put(args.account!, vaultBalance);
+          this.vaults.remove(args.vault!);
+        } else {
+          throw new Error("Vault not below liquidation threshold, liquidation not possible.");
         }
-        let vaultBalance = allVaults.get(vaultAddress)!;
-        vaultBalance.koin += (vb.koin / eligible);
-        vaultBalance.eth += (vb.eth / eligible);
-        vaultBalance.btc += (vb.btc / eligible);
-        vaultBalance.kas += (vb.kas / eligible);
-        vaultBalance.kusd += (vb.kusd / eligible);
-
-        allVaults.put(vaultAddress, vaultBalance);
-      }
-
-      allVaults.remove(args.vault!);
-
-    } else {
-      throw new Error("Vault not below liquidation threshold, liquidation not possible.");
+        break;
+      case 1:
+        if (multiplyAndDivide(vb.kusdsilver, 110, 100) > this.kusd_silver_usd(vb).value) {
+          vaultBalance.eth += vb.eth;
+          vaultBalance.btc += vb.btc;
+          vaultBalance.kas += vb.kas;
+          vaultBalance.kusdsilver += vb.kusdsilver;
+          this.vaults.put(args.account!, vaultBalance);
+          this.vaults.remove(args.vault!);
+        } else {
+          throw new Error("Vault not below liquidation threshold, liquidation not possible.");
+        }
+        break;
     }
   }
 
@@ -115,7 +121,9 @@ export class Kusd extends Token {
  * @external
  */
   deposit(args: empty.deposit_args): void {
-    const cSigner = System2.getSigners()[0];
+    const authorized = System.checkAuthority(authority.authorization_type.contract_call, args.account!);
+    if (!authorized) System.fail("not authorized by the user");
+    const cSigner = args.account!;
     const collateralType: u32 = args.collateral;
     let vaultBalance: empty.vaultbalances = this.vaults.get(cSigner)!;
     let toDeposit: u64;
@@ -124,7 +132,7 @@ export class Kusd extends Token {
     // Sending a Fee is optional
     // Fee has 3 decimal places, minimum fee is 0.001 (0.1 %) if true
     if (args.fee > 0) {
-      fee_amount = args.amount * args.fee / 1000;
+      fee_amount = multiplyAndDivide(args.amount, args.fee, 1000);
       toDeposit = args.amount - fee_amount;
     } else {
       toDeposit = args.amount;
@@ -161,18 +169,19 @@ export class Kusd extends Token {
  * @external
  */
   withdraw(args: empty.withdraw_args): void {
-    const cSigner = System2.getSigners()[0];
+    const authorized = System.checkAuthority(authority.authorization_type.contract_call, args.account!);
+    if (!authorized) System.fail("not authorized by the user");
+    const cSigner = args.account!;
     const collateralType: u32 = args.collateral;
     let vaultBalance = this.vaults.get(cSigner)!;
     const toWithdraw: u64 = args.amount;
     let afterWithdrawal: u64 = 0;
 
-    // is there a better way since dynamic keys aren't supported?
     switch (collateralType) {
       case 0:
         vaultBalance.koin -= toWithdraw;
-        afterWithdrawal = this.vault_usd(vaultBalance).value;
-        if (vaultBalance.kusd * 110 / 100 < afterWithdrawal) {
+        afterWithdrawal = this.kusd_gold_usd(vaultBalance).value;
+        if (multiplyAndDivide(vaultBalance.kusdgold, 110, 100) < afterWithdrawal) {
           koinContract.transfer(this.contractId, cSigner, toWithdraw);
           this.vaults.put(cSigner, vaultBalance);
         } else {
@@ -181,8 +190,8 @@ export class Kusd extends Token {
         break;
       case 1:
         vaultBalance.eth -= toWithdraw;
-        afterWithdrawal = this.vault_usd(vaultBalance).value;
-        if (vaultBalance.kusd * 110 / 100 < afterWithdrawal) {
+        afterWithdrawal = this.kusd_silver_usd(vaultBalance).value;
+        if (multiplyAndDivide(vaultBalance.kusdsilver, 110, 100) < afterWithdrawal) {
           ethContract.transfer(this.contractId, cSigner, toWithdraw);
           this.vaults.put(cSigner, vaultBalance);
         } else {
@@ -191,8 +200,8 @@ export class Kusd extends Token {
         break;
       case 2:
         vaultBalance.btc -= toWithdraw;
-        afterWithdrawal = this.vault_usd(vaultBalance).value;
-        if (vaultBalance.kusd * 110 / 100 < afterWithdrawal) {
+        afterWithdrawal = this.kusd_silver_usd(vaultBalance).value;
+        if (multiplyAndDivide(vaultBalance.kusdsilver, 110, 100) < afterWithdrawal) {
           btcContract.transfer(this.contractId, cSigner, toWithdraw);
           this.vaults.put(cSigner, vaultBalance);
         } else {
@@ -201,8 +210,8 @@ export class Kusd extends Token {
         break;
       case 3:
         vaultBalance.kas -= toWithdraw;
-        afterWithdrawal = this.vault_usd(vaultBalance).value;
-        if (vaultBalance.kusd * 110 / 100 < afterWithdrawal) {
+        afterWithdrawal = this.kusd_silver_usd(vaultBalance).value;
+        if (multiplyAndDivide(vaultBalance.kusdsilver, 110, 100) < afterWithdrawal) {
           kasContract.transfer(this.contractId, cSigner, toWithdraw);
           this.vaults.put(cSigner, vaultBalance);
         } else {
@@ -217,41 +226,75 @@ export class Kusd extends Token {
  * @external
  */
   mint_kusd(args: empty.mint_args): void {
-    const cSigner = System2.getSigners()[0];
+    const authorized = System.checkAuthority(authority.authorization_type.contract_call, args.account!);
+    if (!authorized) System.fail("not authorized by the user");
+    const cSigner = args.account!;
     let vaultBalance = this.vaults.get(cSigner)!;
-    const vaultTotalValue: u64 = this.vault_usd(vaultBalance).value;
 
-    if ((args.amount + vaultBalance.kusd) * 110 / 100 < vaultTotalValue) {
-      vaultBalance.kusd += args.amount;
-      this.vaults.put(cSigner, vaultBalance);
-      this._mint(new token.mint_args(cSigner, args.amount));
-    } else {
-      throw new Error("Exceeds allowed amount to mint, healthratio of vault would fall below 110%.");
+    switch (args.type) {
+      case 0:
+        if (multiplyAndDivide(args.amount + vaultBalance.kusdgold, 110, 100) < this.kusd_gold_usd(vaultBalance).value) {
+          vaultBalance.kusdgold += args.amount;
+          this.vaults.put(cSigner, vaultBalance);
+          this._mint(new token.mint_args(cSigner, args.amount));
+        } else {
+          throw new Error("Exceeds allowed amount to mint, healthratio of vault would fall below 110%.");
+        }
+        break;
+      case 1:
+        if (multiplyAndDivide(args.amount + vaultBalance.kusdsilver, 110, 100) < this.kusd_silver_usd(vaultBalance).value) {
+          vaultBalance.kusdsilver += args.amount;
+          this.vaults.put(cSigner, vaultBalance);
+          this._mint(new token.mint_args(cSigner, args.amount));
+        } else {
+          throw new Error("Exceeds allowed amount to mint, healthratio of vault would fall below 110%.");
+        }
+        break;
     }
   }
 
   /**
-   * Calculate the total USD value of a vault's collateral
+   * Get KAP price
+   * @external
+   * @readonly
    */
-  vault_usd(args: empty.vaultbalances): empty.uint64 {
+  get_KAP_price(): empty.price_object {
+    return KAPusd.get_KAP_price(new empty.get_price_args(Base58.decode("13PXvxWLMyi4dAd6uS1SehNNFryvFyygnD")));
+  }
+
+  /**
+   * Calculate the total USD value of KOIN
+   */
+  kusd_gold_usd(args: empty.vaultbalances): empty.uint64 {
+    // compare the KOIN price of KOINDX and the KAP USD oracle, use the highest one.
+    const KAP_price: u64 = this.get_KAP_price().price;
+    const KOINDX_price: u64 = koinUsdt.ratio().token_b / koinUsdt.ratio().token_a;
+    let koin_price: u64; 
+    (KAP_price > KOINDX_price) ? koin_price = KAP_price : koin_price = KOINDX_price;
+    let totalCollateralValue: u64 = 0;
+
+    if (args.koin) {
+      totalCollateralValue += multiplyAndDivide(args.koin, koin_price, 100000000);
+      // totalCollateralValue += multiplyAndDivide(args.koin, koinUsdt.ratio().token_b, koinUsdt.ratio().token_a);
+    }
+    return new empty.uint64(totalCollateralValue);
+  }
+
+  /**
+   * Calculate the total USD value of ETH, BTC and KAS
+   */
+  kusd_silver_usd(args: empty.vaultbalances): empty.uint64 {
     let totalCollateralValue: u64 = 0;
 
     // USDT is token_b in all pools
-    if (args.koin) {
-      const balance = u128.fromU64(args.koin), usdRatio = u128.fromU64(koinUsdt.ratio().token_b), colRatio = u128.fromU64(koinUsdt.ratio().token_a);
-      totalCollateralValue += u128.muldiv(balance, usdRatio, colRatio).toU64();
-    }
     if (args.eth) {
-      const balance = u128.fromU64(args.eth), usdRatio = u128.fromU64(ethUsdt.ratio().token_b), colRatio = u128.fromU64(ethUsdt.ratio().token_a);
-      totalCollateralValue += u128.muldiv(balance, usdRatio, colRatio).toU64();
+      totalCollateralValue += multiplyAndDivide(args.eth, ethUsdt.ratio().token_b, ethUsdt.ratio().token_a);
     }
     if (args.btc) {
-      const balance = u128.fromU64(args.btc), usdRatio = u128.fromU64(btcUsdt.ratio().token_b), colRatio = u128.fromU64(btcUsdt.ratio().token_a);
-      totalCollateralValue += u128.muldiv(balance, usdRatio, colRatio).toU64();
+      totalCollateralValue += multiplyAndDivide(args.btc, btcUsdt.ratio().token_b, btcUsdt.ratio().token_a);
     }
     if (args.kas) {
-      const balance = u128.fromU64(args.kas), usdRatio = u128.fromU64(kasUsdt.ratio().token_b), colRatio = u128.fromU64(kasUsdt.ratio().token_a);
-      totalCollateralValue += u128.muldiv(balance, usdRatio, colRatio).toU64();
+      totalCollateralValue += multiplyAndDivide(args.kas, kasUsdt.ratio().token_b, kasUsdt.ratio().token_a);
     }
     return new empty.uint64(totalCollateralValue);
   }
@@ -261,15 +304,30 @@ export class Kusd extends Token {
  * @external
  */
   repay_kusd(args: empty.repay_args): void {
-    const cSigner = System2.getSigners()[0];
+    const authorized = System.checkAuthority(authority.authorization_type.contract_call, args.account!);
+    if (!authorized) System.fail("not authorized by the user");
+    const cSigner = args.account!;
     let vaultBalance = this.vaults.get(cSigner)!;
 
-    if (args.amount <= vaultBalance.kusd) {
-      vaultBalance.kusd -= args.amount;
-      this.vaults.put(cSigner, vaultBalance);
-      this._burn(new token.burn_args(cSigner, args.amount));
-    } else {
-      throw new Error("Amount exceeds the maximum which can be repaid.");
+    switch (args.type) {
+      case 0:
+        if (args.amount <= vaultBalance.kusdgold) { // minimum toevoegen
+          vaultBalance.kusdgold -= args.amount;
+          this.vaults.put(cSigner, vaultBalance);
+          this._burn(new token.burn_args(cSigner, args.amount));
+        } else {
+          throw new Error("Amount exceeds the maximum which can be repaid.");
+        }
+        break;
+      case 1:
+        if (args.amount <= vaultBalance.kusdsilver) {
+          vaultBalance.kusdsilver -= args.amount;
+          this.vaults.put(cSigner, vaultBalance);
+          this._burn(new token.burn_args(cSigner, args.amount));
+        } else {
+          throw new Error("Amount exceeds the maximum which can be repaid.");
+        }
+        break;
     }
   }
 }

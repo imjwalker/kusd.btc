@@ -1,8 +1,10 @@
-# KUSD Stablecoin (working title), 0% interest loans on Koinos
+# KUSD, 0% interest loans on Koinos
 
 ### How does KUSD work?
 
-Anyone can deposit KOIN, ETH, BTC or KAS into their vault. Afterwards then can mint as much KUSD as they want, given that they keep a 110% collateralization ratio of at least 110%.
+Anyone can deposit KOIN, ETH or BTC into a vault. Afterwards then can mint as much KUSD as they want, given that they keep a 110% collateralization ratio of at least 110%.
+Based on their collateral they can mint kusd.koin, kusd.eth or kusd.btc
+
 If a vault falls below 110%, anyone can liquidate it. This means that the collateral AND the debt are redistributed across all other vaults. 
 The owner of the vault still keeps the minted KUSD in his wallet. This means the holder of a vault is penalized 10% if his vault gets liquidated. Owners of other vaults gain 10% on the extra funds they receive.
 

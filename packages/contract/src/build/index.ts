@@ -10,27 +10,27 @@ let returnBuffer = new Uint8Array(1024);
 switch (contract.callArgs!.entry_point) {
   /* class Kusd */
     
-  // get_vaults
-  case 0x23f83d39: {
+  // get_btc_protocol_balances
+  case 0x3479c424: {
     const args = Protobuf.decode<empty.list_args>(contract.callArgs!.args, empty.list_args.decode);
-    const result = contract.get_vaults(args);
+    const result = contract.get_btc_protocol_balances(args);
+    returnBuffer = Protobuf.encode(result, empty.kusd_btc_protocol_balances.encode);
+    break;
+  }
+
+  // get_btc_vaults
+  case 0x725633ad: {
+    const args = Protobuf.decode<empty.list_args>(contract.callArgs!.args, empty.list_args.decode);
+    const result = contract.get_btc_vaults(args);
     returnBuffer = Protobuf.encode(result, empty.addresses.encode);
     break;
   }
 
-  // get_vault
-  case 0xaccde3c7: {
+  // get_btc_vault
+  case 0xba340035: {
     const args = Protobuf.decode<empty.get_vault_args>(contract.callArgs!.args, empty.get_vault_args.decode);
-    const result = contract.get_vault(args);
-    returnBuffer = Protobuf.encode(result, empty.vaultbalances.encode);
-    break;
-  }
-
-  // liquidate
-  case 0xbcd6cc74: {
-    const args = Protobuf.decode<empty.liquidate_args>(contract.callArgs!.args, empty.liquidate_args.decode);
-    contract.liquidate(args);
-    returnBuffer = new Uint8Array(0);
+    const result = contract.get_btc_vault(args);
+    returnBuffer = Protobuf.encode(result, empty.kusd_btc_vaultbalances.encode);
     break;
   }
 
@@ -50,18 +50,34 @@ switch (contract.callArgs!.entry_point) {
     break;
   }
 
-  // mint_kusd
-  case 0xa81c3300: {
+  // kusd_mint
+  case 0xfe3c15d6: {
     const args = Protobuf.decode<empty.mint_args>(contract.callArgs!.args, empty.mint_args.decode);
-    contract.mint_kusd(args);
+    contract.kusd_mint(args);
     returnBuffer = new Uint8Array(0);
     break;
   }
 
-  // repay_kusd
-  case 0xa1575e73: {
+  // usd_price
+  case 0x24072170: {
+    const args = Protobuf.decode<empty.kusd_btc_vaultbalances>(contract.callArgs!.args, empty.kusd_btc_vaultbalances.decode);
+    const result = contract.usd_price(args);
+    returnBuffer = Protobuf.encode(result, empty.uint64.encode);
+    break;
+  }
+
+  // repay
+  case 0x66f49a3a: {
     const args = Protobuf.decode<empty.repay_args>(contract.callArgs!.args, empty.repay_args.decode);
-    contract.repay_kusd(args);
+    contract.repay(args);
+    returnBuffer = new Uint8Array(0);
+    break;
+  }
+
+  // liquidate
+  case 0xbcd6cc74: {
+    const args = Protobuf.decode<empty.liquidate_args>(contract.callArgs!.args, empty.liquidate_args.decode);
+    contract.liquidate(args);
     returnBuffer = new Uint8Array(0);
     break;
   }

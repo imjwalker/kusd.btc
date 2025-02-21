@@ -73,6 +73,129 @@ export namespace empty {
     }
   }
 
+  export class kusd_btc_protocol_balances {
+    static encode(message: kusd_btc_protocol_balances, writer: Writer): void {
+      const unique_name_vbs = message.vbs;
+      for (let i = 0; i < unique_name_vbs.length; ++i) {
+        writer.uint32(10);
+        writer.fork();
+        kusd_btc_vaultbalances.encode(unique_name_vbs[i], writer);
+        writer.ldelim();
+      }
+    }
+
+    static decode(reader: Reader, length: i32): kusd_btc_protocol_balances {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new kusd_btc_protocol_balances();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.vbs.push(
+              kusd_btc_vaultbalances.decode(reader, reader.uint32())
+            );
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    vbs: Array<kusd_btc_vaultbalances>;
+
+    constructor(vbs: Array<kusd_btc_vaultbalances> = []) {
+      this.vbs = vbs;
+    }
+  }
+
+  @unmanaged
+  export class kusd_btc_vaultbalances {
+    static encode(message: kusd_btc_vaultbalances, writer: Writer): void {
+      if (message.btc != 0) {
+        writer.uint32(8);
+        writer.uint64(message.btc);
+      }
+
+      if (message.kusd_btc != 0) {
+        writer.uint32(16);
+        writer.uint64(message.kusd_btc);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): kusd_btc_vaultbalances {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new kusd_btc_vaultbalances();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.btc = reader.uint64();
+            break;
+
+          case 2:
+            message.kusd_btc = reader.uint64();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    btc: u64;
+    kusd_btc: u64;
+
+    constructor(btc: u64 = 0, kusd_btc: u64 = 0) {
+      this.btc = btc;
+      this.kusd_btc = kusd_btc;
+    }
+  }
+
+  export class get_vault_args {
+    static encode(message: get_vault_args, writer: Writer): void {
+      const unique_name_owner = message.owner;
+      if (unique_name_owner !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_owner);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): get_vault_args {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new get_vault_args();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.owner = reader.bytes();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    owner: Uint8Array | null;
+
+    constructor(owner: Uint8Array | null = null) {
+      this.owner = owner;
+    }
+  }
+
   export class list_args {
     static encode(message: list_args, writer: Writer): void {
       const unique_name_start = message.start;
@@ -173,140 +296,6 @@ export namespace empty {
     }
   }
 
-  export class get_vault_args {
-    static encode(message: get_vault_args, writer: Writer): void {
-      const unique_name_owner = message.owner;
-      if (unique_name_owner !== null) {
-        writer.uint32(10);
-        writer.bytes(unique_name_owner);
-      }
-    }
-
-    static decode(reader: Reader, length: i32): get_vault_args {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new get_vault_args();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          case 1:
-            message.owner = reader.bytes();
-            break;
-
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    owner: Uint8Array | null;
-
-    constructor(owner: Uint8Array | null = null) {
-      this.owner = owner;
-    }
-  }
-
-  @unmanaged
-  export class vaultbalances {
-    static encode(message: vaultbalances, writer: Writer): void {
-      if (message.koin != 0) {
-        writer.uint32(8);
-        writer.uint64(message.koin);
-      }
-
-      if (message.eth != 0) {
-        writer.uint32(16);
-        writer.uint64(message.eth);
-      }
-
-      if (message.btc != 0) {
-        writer.uint32(24);
-        writer.uint64(message.btc);
-      }
-
-      if (message.kas != 0) {
-        writer.uint32(32);
-        writer.uint64(message.kas);
-      }
-
-      if (message.kusdgold != 0) {
-        writer.uint32(40);
-        writer.uint64(message.kusdgold);
-      }
-
-      if (message.kusdsilver != 0) {
-        writer.uint32(48);
-        writer.uint64(message.kusdsilver);
-      }
-    }
-
-    static decode(reader: Reader, length: i32): vaultbalances {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new vaultbalances();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          case 1:
-            message.koin = reader.uint64();
-            break;
-
-          case 2:
-            message.eth = reader.uint64();
-            break;
-
-          case 3:
-            message.btc = reader.uint64();
-            break;
-
-          case 4:
-            message.kas = reader.uint64();
-            break;
-
-          case 5:
-            message.kusdgold = reader.uint64();
-            break;
-
-          case 6:
-            message.kusdsilver = reader.uint64();
-            break;
-
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    koin: u64;
-    eth: u64;
-    btc: u64;
-    kas: u64;
-    kusdgold: u64;
-    kusdsilver: u64;
-
-    constructor(
-      koin: u64 = 0,
-      eth: u64 = 0,
-      btc: u64 = 0,
-      kas: u64 = 0,
-      kusdgold: u64 = 0,
-      kusdsilver: u64 = 0
-    ) {
-      this.koin = koin;
-      this.eth = eth;
-      this.btc = btc;
-      this.kas = kas;
-      this.kusdgold = kusdgold;
-      this.kusdsilver = kusdsilver;
-    }
-  }
-
   export class deposit_args {
     static encode(message: deposit_args, writer: Writer): void {
       const unique_name_account = message.account;
@@ -315,24 +304,19 @@ export namespace empty {
         writer.bytes(unique_name_account);
       }
 
-      if (message.collateral != 0) {
-        writer.uint32(16);
-        writer.uint32(message.collateral);
-      }
-
       if (message.amount != 0) {
-        writer.uint32(24);
+        writer.uint32(16);
         writer.uint64(message.amount);
       }
 
       if (message.fee != 0) {
-        writer.uint32(32);
+        writer.uint32(24);
         writer.uint32(message.fee);
       }
 
       const unique_name_fee_address = message.fee_address;
       if (unique_name_fee_address !== null) {
-        writer.uint32(42);
+        writer.uint32(34);
         writer.bytes(unique_name_fee_address);
       }
     }
@@ -349,18 +333,14 @@ export namespace empty {
             break;
 
           case 2:
-            message.collateral = reader.uint32();
-            break;
-
-          case 3:
             message.amount = reader.uint64();
             break;
 
-          case 4:
+          case 3:
             message.fee = reader.uint32();
             break;
 
-          case 5:
+          case 4:
             message.fee_address = reader.bytes();
             break;
 
@@ -374,147 +354,20 @@ export namespace empty {
     }
 
     account: Uint8Array | null;
-    collateral: u32;
     amount: u64;
     fee: u32;
     fee_address: Uint8Array | null;
 
     constructor(
       account: Uint8Array | null = null,
-      collateral: u32 = 0,
       amount: u64 = 0,
       fee: u32 = 0,
       fee_address: Uint8Array | null = null
     ) {
       this.account = account;
-      this.collateral = collateral;
       this.amount = amount;
       this.fee = fee;
       this.fee_address = fee_address;
-    }
-  }
-
-  export class mint_args {
-    static encode(message: mint_args, writer: Writer): void {
-      const unique_name_account = message.account;
-      if (unique_name_account !== null) {
-        writer.uint32(10);
-        writer.bytes(unique_name_account);
-      }
-
-      if (message.type != 0) {
-        writer.uint32(16);
-        writer.uint32(message.type);
-      }
-
-      if (message.amount != 0) {
-        writer.uint32(24);
-        writer.uint64(message.amount);
-      }
-    }
-
-    static decode(reader: Reader, length: i32): mint_args {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new mint_args();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          case 1:
-            message.account = reader.bytes();
-            break;
-
-          case 2:
-            message.type = reader.uint32();
-            break;
-
-          case 3:
-            message.amount = reader.uint64();
-            break;
-
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    account: Uint8Array | null;
-    type: u32;
-    amount: u64;
-
-    constructor(
-      account: Uint8Array | null = null,
-      type: u32 = 0,
-      amount: u64 = 0
-    ) {
-      this.account = account;
-      this.type = type;
-      this.amount = amount;
-    }
-  }
-
-  export class repay_args {
-    static encode(message: repay_args, writer: Writer): void {
-      const unique_name_account = message.account;
-      if (unique_name_account !== null) {
-        writer.uint32(10);
-        writer.bytes(unique_name_account);
-      }
-
-      if (message.type != 0) {
-        writer.uint32(16);
-        writer.uint32(message.type);
-      }
-
-      if (message.amount != 0) {
-        writer.uint32(24);
-        writer.uint64(message.amount);
-      }
-    }
-
-    static decode(reader: Reader, length: i32): repay_args {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new repay_args();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          case 1:
-            message.account = reader.bytes();
-            break;
-
-          case 2:
-            message.type = reader.uint32();
-            break;
-
-          case 3:
-            message.amount = reader.uint64();
-            break;
-
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    account: Uint8Array | null;
-    type: u32;
-    amount: u64;
-
-    constructor(
-      account: Uint8Array | null = null,
-      type: u32 = 0,
-      amount: u64 = 0
-    ) {
-      this.account = account;
-      this.type = type;
-      this.amount = amount;
     }
   }
 
@@ -526,13 +379,8 @@ export namespace empty {
         writer.bytes(unique_name_account);
       }
 
-      if (message.collateral != 0) {
-        writer.uint32(16);
-        writer.uint32(message.collateral);
-      }
-
       if (message.amount != 0) {
-        writer.uint32(24);
+        writer.uint32(16);
         writer.uint64(message.amount);
       }
     }
@@ -549,10 +397,6 @@ export namespace empty {
             break;
 
           case 2:
-            message.collateral = reader.uint32();
-            break;
-
-          case 3:
             message.amount = reader.uint64();
             break;
 
@@ -566,16 +410,104 @@ export namespace empty {
     }
 
     account: Uint8Array | null;
-    collateral: u32;
     amount: u64;
 
-    constructor(
-      account: Uint8Array | null = null,
-      collateral: u32 = 0,
-      amount: u64 = 0
-    ) {
+    constructor(account: Uint8Array | null = null, amount: u64 = 0) {
       this.account = account;
-      this.collateral = collateral;
+      this.amount = amount;
+    }
+  }
+
+  export class mint_args {
+    static encode(message: mint_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
+      if (message.amount != 0) {
+        writer.uint32(16);
+        writer.uint64(message.amount);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): mint_args {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new mint_args();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.account = reader.bytes();
+            break;
+
+          case 2:
+            message.amount = reader.uint64();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    account: Uint8Array | null;
+    amount: u64;
+
+    constructor(account: Uint8Array | null = null, amount: u64 = 0) {
+      this.account = account;
+      this.amount = amount;
+    }
+  }
+
+  export class repay_args {
+    static encode(message: repay_args, writer: Writer): void {
+      const unique_name_account = message.account;
+      if (unique_name_account !== null) {
+        writer.uint32(10);
+        writer.bytes(unique_name_account);
+      }
+
+      if (message.amount != 0) {
+        writer.uint32(16);
+        writer.uint64(message.amount);
+      }
+    }
+
+    static decode(reader: Reader, length: i32): repay_args {
+      const end: usize = length < 0 ? reader.end : reader.ptr + length;
+      const message = new repay_args();
+
+      while (reader.ptr < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1:
+            message.account = reader.bytes();
+            break;
+
+          case 2:
+            message.amount = reader.uint64();
+            break;
+
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+
+      return message;
+    }
+
+    account: Uint8Array | null;
+    amount: u64;
+
+    constructor(account: Uint8Array | null = null, amount: u64 = 0) {
+      this.account = account;
       this.amount = amount;
     }
   }
@@ -588,14 +520,9 @@ export namespace empty {
         writer.bytes(unique_name_account);
       }
 
-      if (message.type != 0) {
-        writer.uint32(16);
-        writer.uint32(message.type);
-      }
-
       const unique_name_vault = message.vault;
       if (unique_name_vault !== null) {
-        writer.uint32(26);
+        writer.uint32(18);
         writer.bytes(unique_name_vault);
       }
     }
@@ -612,10 +539,6 @@ export namespace empty {
             break;
 
           case 2:
-            message.type = reader.uint32();
-            break;
-
-          case 3:
             message.vault = reader.bytes();
             break;
 
@@ -629,114 +552,14 @@ export namespace empty {
     }
 
     account: Uint8Array | null;
-    type: u32;
     vault: Uint8Array | null;
 
     constructor(
       account: Uint8Array | null = null,
-      type: u32 = 0,
       vault: Uint8Array | null = null
     ) {
       this.account = account;
-      this.type = type;
       this.vault = vault;
-    }
-  }
-
-  @unmanaged
-  export class ratio_args {
-    static encode(message: ratio_args, writer: Writer): void {}
-
-    static decode(reader: Reader, length: i32): ratio_args {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new ratio_args();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    constructor() {}
-  }
-
-  export class ratio_result {
-    static encode(message: ratio_result, writer: Writer): void {
-      const unique_name_k_last = message.k_last;
-      if (unique_name_k_last !== null) {
-        writer.uint32(10);
-        writer.string(unique_name_k_last);
-      }
-
-      if (message.token_a != 0) {
-        writer.uint32(16);
-        writer.uint64(message.token_a);
-      }
-
-      if (message.token_b != 0) {
-        writer.uint32(24);
-        writer.uint64(message.token_b);
-      }
-
-      if (message.block_time != 0) {
-        writer.uint32(32);
-        writer.uint64(message.block_time);
-      }
-    }
-
-    static decode(reader: Reader, length: i32): ratio_result {
-      const end: usize = length < 0 ? reader.end : reader.ptr + length;
-      const message = new ratio_result();
-
-      while (reader.ptr < end) {
-        const tag = reader.uint32();
-        switch (tag >>> 3) {
-          case 1:
-            message.k_last = reader.string();
-            break;
-
-          case 2:
-            message.token_a = reader.uint64();
-            break;
-
-          case 3:
-            message.token_b = reader.uint64();
-            break;
-
-          case 4:
-            message.block_time = reader.uint64();
-            break;
-
-          default:
-            reader.skipType(tag & 7);
-            break;
-        }
-      }
-
-      return message;
-    }
-
-    k_last: string | null;
-    token_a: u64;
-    token_b: u64;
-    block_time: u64;
-
-    constructor(
-      k_last: string | null = null,
-      token_a: u64 = 0,
-      token_b: u64 = 0,
-      block_time: u64 = 0
-    ) {
-      this.k_last = k_last;
-      this.token_a = token_a;
-      this.token_b = token_b;
-      this.block_time = block_time;
     }
   }
 
